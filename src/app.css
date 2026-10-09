@@ -1050,6 +1050,215 @@
 }
 
 /*
+ * Legibility pass. The office stylesheet was drawn for a larger stage and left a lot of text at 8 to 10px.
+ * Nothing a person is meant to read is below 11px now, and running text is 12px or more. Sizes on the floor
+ * are before the stage's own scaling, which is why they look generous here.
+ */
+.room-strip .workflow-step-code {
+  width: 34px;
+  font-size: 11px;
+  /* Ink on the raw room color fell short of 4.5:1 for the bluer rooms. */
+  background: color-mix(in srgb, var(--zone-accent) 72%, var(--color-cream));
+}
+
+.room-strip .workflow-step strong {
+  font-size: 12px;
+}
+
+.room-strip .workflow-step-status {
+  font-size: 11px;
+}
+
+.moonlab-shell .office-world-heading p,
+.moonlab-shell .office-editor-heading p {
+  font-size: 11px;
+}
+
+.moonlab-shell .office-world-heading > div:first-child > span {
+  font-size: 12px;
+}
+
+.moonlab-shell .office-clock-card span {
+  font-size: 11px;
+}
+
+.moonlab-shell .office-world-actions button,
+.moonlab-shell .office-editor button,
+.moonlab-shell .office-editor-section p,
+.moonlab-shell .office-furniture-catalog button {
+  font-size: 12px;
+}
+
+/*
+ * "Ramai" pulsed by fading to 40% and shrinking, which made a status label unreadable half the time.
+ * It holds still now and says it with a border and a dot.
+ */
+.moonlab-shell .status-badge {
+  gap: 6px;
+  font-size: 12px;
+  animation: none;
+}
+
+.moonlab-shell .status-badge::before {
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--color-muted);
+  border-radius: 50%;
+  content: "";
+}
+
+.moonlab-shell .status-badge.status-running {
+  border-color: var(--color-amber);
+}
+
+.moonlab-shell .status-badge.status-running::before {
+  border-color: var(--color-amber);
+  background: var(--color-amber);
+}
+
+.moonlab-shell .office-camera-controls button {
+  min-height: 32px;
+  font-size: 12px;
+}
+
+/* A disabled control may be dim, but its label should still say what it is. */
+.moonlab-shell .office-camera-controls button:disabled {
+  opacity: 0.62;
+}
+
+.moonlab-shell .office-lobby strong {
+  font-size: 11px;
+}
+
+.moonlab-shell .office-lobby span {
+  font-size: 11px;
+}
+
+.moonlab-shell .work-group-code {
+  width: 30px;
+  font-size: 11px;
+}
+
+.moonlab-shell .roster-level,
+.moonlab-shell .builder-option {
+  font-size: 12px;
+}
+
+/* On the floor. */
+.moonlab-shell .office-zone-heading {
+  overflow: hidden;
+  font-size: 12px;
+}
+
+/* When a sign is too narrow, the room's name gives way; the head count stays whole. */
+.moonlab-shell .office-zone-heading small {
+  flex: none;
+}
+
+.moonlab-shell .office-zone-heading strong {
+  flex: 0 1 auto;
+  min-width: 2ch;
+}
+
+.moonlab-shell .office-zone-heading small {
+  font-size: 11px;
+}
+
+.moonlab-shell .world-agent-identity small,
+.moonlab-shell .world-agent-level {
+  font-size: 13px;
+}
+
+.moonlab-shell .world-agent-identity strong {
+  font-size: 14px;
+}
+
+.moonlab-shell .world-agent-status {
+  font-size: 13px;
+}
+
+/*
+ * A seated character is drawn smaller, and everything attached to it shrinks along. The nameplate already
+ * made up for that; the voice badge did not, and came out at about 6px.
+ */
+.moonlab-shell .world-agent[data-resting="true"] .world-agent-status {
+  scale: calc(var(--label-counter, 1) * 1.2);
+}
+
+.moonlab-shell .office-world.office-crowded .world-agent[data-resting="true"] .world-agent-status {
+  scale: calc(var(--label-counter, 1) * 1.48);
+}
+
+.moonlab-shell .world-agent-popover > span,
+.moonlab-shell .world-agent-popover dt,
+.moonlab-shell .world-agent-popover dd {
+  font-size: 13px;
+}
+
+/*
+ * The room signs sit in a layer of their own, above the furniture and below the people. Each wrapper is the
+ * room's rectangle, so the sign keeps the position the room's own rules give it.
+ */
+.office-label-layer {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  pointer-events: none;
+}
+
+.office-zone-label {
+  position: absolute;
+  top: var(--world-y);
+  left: var(--world-x);
+  width: var(--world-w);
+  height: var(--world-h);
+}
+
+/*
+ * Clicking a character opens their card, but the target was the sprite itself: about 13×26 on the whole
+ * floor, half that when seated. It now reaches well past the sprite. Neighbours' targets may touch; the
+ * one drawn in front wins, as with the sprites.
+ */
+.moonlab-shell .world-agent-select {
+  inset: -34px -40px -20px;
+}
+
+.moonlab-shell .world-agent-popover > button {
+  min-width: 28px;
+  min-height: 28px;
+}
+
+@media (max-width: 720px) {
+  /* The bar's controls fill their row instead of leaving a ragged second line. */
+  .app-bar .app-language {
+    flex: 1 1 100%;
+  }
+
+  .app-bar .app-language select {
+    flex: 1 1 auto;
+  }
+
+  .app-bar .app-settings {
+    flex: 1 1 0;
+  }
+
+  .settings-head .work-action {
+    min-width: 44px;
+  }
+
+  .settings-dialog input,
+  .settings-dialog select {
+    min-height: 44px;
+  }
+
+  .builder-signout {
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 4px;
+  }
+}
+
+/*
  * The side panel can be folded away so the office has the whole width. Only on a wide window: below
  * 1180px the office and the panel are already shown one at a time, through the tabs.
  */

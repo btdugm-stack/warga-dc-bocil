@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { adminToken, storeAdminToken } from "./discord/admin";
 import { AGENT_HUES, SPRITE_COUNT } from "./discord/characters";
-import { COPY, EMOTE_GLYPHS, PRESENCE_LABELS, fill } from "./discord/copy";
+import { COPY, EMOTE_GLYPHS, PRESENCE_LABELS, VOICE_STATE_LABELS, fill } from "./discord/copy";
 import { activityText, doingText, roomNote, roomTitle, voiceText } from "./discord/rooms";
 import type { Member, RoomState } from "./discord/types";
 import { localized, t, type Locale, type MessageKey } from "./i18n";
@@ -948,6 +948,16 @@ export function OfficeWorld({
     "--office-grid-y": `${100 / OFFICE_ROWS}%`,
   } as WorldStyle;
 
+  const zoneLabels = ROOM_ZONES.map((_, index) => {
+    const room = rooms[index];
+    // People the server left out plus people this room has no chair for.
+    const hidden = (room?.overflow ?? 0) + (unseated[index] ?? 0);
+    return {
+      title: roomTitle(room, index, locale),
+      note: `${roomNote(room, locale)}${hidden ? ` · ${fill(COPY.roomOverflow, locale, { count: hidden })}` : ""}`,
+    };
+  });
+
   /*
    * The editor panel. The shell gives it a place beside the floor (`editorHost`); without one it is laid
    * over the floor's right edge, which hides the rooms underneath.
@@ -1153,10 +1163,7 @@ export function OfficeWorld({
           <div className="office-zone-layer">
             {ROOM_ZONES.map((zone, index) => {
               const room = rooms[index];
-              const title = roomTitle(room, index, locale);
-              // People the server left out plus people this room has no chair for.
-              const hidden = (room?.overflow ?? 0) + (unseated[index] ?? 0);
-              const note = `${roomNote(room, locale)}${hidden ? ` · ${fill(COPY.roomOverflow, locale, { count: hidden })}` : ""}`;
+              const { title, note } = zoneLabels[index];
               return (
                 <article
                   className={`office-zone ${index >= WORKSPACE_ZONES.length ? "amenity-zone " : ""}zone-${zone.id}`}
@@ -1167,13 +1174,6 @@ export function OfficeWorld({
                   data-zone-status={room?.live ? "running" : "idle"}
                   data-bound={room && room.kind !== "none" && !room.missing ? "true" : "false"}
                 >
-                  <div className="office-zone-heading">
-                    <span>{zone.code}</span>
-                    <div>
-                      <strong>{title}</strong>
-                      <small>{note}</small>
-                    </div>
-                  </div>
                   <i
                     className={`office-zone-door door-${doorDirection(zone)}`}
                     style={{
@@ -1222,6 +1222,28 @@ export function OfficeWorld({
                 </button>
               );
             })}
+          </div>
+
+          {/*
+            * The rooms' name signs, drawn over the furniture. Inside the room layer they sat under it, and the
+            * shelves and pictures along each top wall cut through the room's name and head count.
+            */}
+          <div className="office-label-layer" aria-hidden="true">
+            {ROOM_ZONES.map((zone, index) => (
+              <div
+                className={`office-zone-label zone-${zone.id}`}
+                key={zone.id}
+                style={{ ...rectStyle(zone.col, zone.row, zone.cols, zone.rows), "--zone-accent": zone.accent } as WorldStyle}
+              >
+                <div className="office-zone-heading">
+                  <span>{zone.code}</span>
+                  <div>
+                    <strong>{zoneLabels[index].title}</strong>
+                    <small>{zoneLabels[index].note}</small>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {placingType && ghost?.item.type === placingType ? (
@@ -1305,7 +1327,16 @@ export function OfficeWorld({
                     {actor.activity ? <small title={doing ?? undefined}>{actor.activity.name}</small> : null}
                     <strong>{actor.name}</strong>
                   </span>
-                  {voice ? <b className="world-agent-status">{fill(COPY.voiceBadge, locale, { where: voice })}</b> : null}
+                  {/*
+                    * On the floor the badge is one word: how they are in the call, or just that they are in one.
+                    * Spelled out for everyone in a busy voice room, the channel's name buried the room. The full
+                    * line is in the roster and in the card that opens on a click.
+                    */}
+                  {voice ? (
+                    <b className="world-agent-status" title={fill(COPY.voiceBadge, locale, { where: voice })}>
+                      {localized(actor.voiceState ? VOICE_STATE_LABELS[actor.voiceState] : COPY.voiceShort, locale)}
+                    </b>
+                  ) : null}
                   {selectedAgent ? (
                     <aside
                       className="world-agent-popover"

@@ -1,0 +1,56 @@
+diff --git a/src/OfficeWorld.tsx b/src/OfficeWorld.tsx
+index 29dcbeb..7a3245f 100644
+--- a/src/OfficeWorld.tsx
++++ b/src/OfficeWorld.tsx
+@@ -47,7 +47,7 @@ export type OfficeWorldProps = {
+ type WorldStyle = CSSProperties & Record<`--${string}`, string | number>;
+ type Direction = "left" | "right" | "up" | "down";
+ /** A member plus the look derived from their id, so the same person keeps the same character. */
+-type Actor = Member & { sprite: number; hue: number; jitter: number; door: number };
++type Actor = Member & { sprite: number; hue: number; personal: string | null; jitter: number; door: number };
+ type AgentMotion = {
+   /** The tile currently being approached. The reference point for arrival checks and path progress. */
+   point: OfficePoint;
+@@ -82,6 +82,14 @@ const HUES = [
+   { value: 300, label: "hue.pink" },
+ ] as const satisfies readonly { value: number; label: MessageKey }[];
+ const SPRITE_COUNT = 6;
++/**
++ * People who get their own character sheet instead of one of the six shared sprites.
++ * Key: Discord display name as shown in the office (lower case). Value: a sheet in public/characters,
++ * in the same 112x96 layout as char_N.png.
++ */
++const PERSONAL_SPRITES: Readonly<Record<string, string>> = {
++  "nama discord kamu": "/characters/alien_blangkon.png",
++};
+ /** Subtle hue variations make the six sprites look like different people. Larger shifts distort skin tones. */
+ const AGENT_HUES = [0, -34, 18, -16, 34, -50] as const;
+ 
+@@ -160,10 +168,13 @@ function hashOf(text: string) {
+ 
+ function actorFor(member: Member): Actor {
+   const hash = hashOf(member.id);
++  const personal = PERSONAL_SPRITES[member.name.trim().toLowerCase()] ?? null;
+   return {
+     ...member,
+     sprite: hash % SPRITE_COUNT,
+-    hue: AGENT_HUES[(hash >>> 4) % AGENT_HUES.length],
++    // A personal sheet keeps its own colors: the hue shift is only for telling the shared sprites apart.
++    hue: personal ? 0 : AGENT_HUES[(hash >>> 4) % AGENT_HUES.length],
++    personal,
+     // A subtle tile-unit offset that keeps people passing through the same tile from overlapping exactly.
+     jitter: (((hash >>> 8) % 11) - 5) * 0.03,
+     door: (hash >>> 12) % 2,
+@@ -992,7 +1003,11 @@ export function OfficeWorld({
+                       setSelectedAgentId((current) => current === actor.id ? null : actor.id);
+                     }}
+                   />
+-                  <span className="world-agent-sprite" aria-hidden="true" />
++                  <span
++                    className="world-agent-sprite"
++                    aria-hidden="true"
++                    style={actor.personal ? { backgroundImage: `url("${actor.personal}")` } : undefined}
++                  />
+                   <span className="world-agent-identity">
+                     <strong>{actor.name}</strong>
+                   </span>

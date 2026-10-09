@@ -54,7 +54,7 @@ export const COPY = {
   badgeQuiet: both("Sepi", "Quiet"),
 
   stripLabel: both("Ruangan", "Rooms"),
-  roomEmpty: both("Belum dihubungkan", "Not bound"),
+  roomEmpty: both("Kosong", "Empty"),
   roomMissing: both("Tidak ditemukan", "Not found"),
   roomBlocked: both("Bot tidak punya akses", "Bot has no access"),
   warnBlocked: both(
@@ -94,6 +94,7 @@ export const COPY = {
   activityOffline: both("Offline", "Offline"),
   activityNone: both("Nongkrong", "Hanging out"),
   voiceBadge: both("VC · {where}", "VC · {where}"),
+  voiceShort: both("VC", "VC"),
 
   guideOpen: both("Karakter", "Characters"),
   guideTitle: both("Rakit karaktermu", "Build your character"),
